@@ -1,0 +1,102 @@
+import requests
+import time
+import pandas as pd
+from bs4 import BeautifulSoup
+import re
+
+def request_url(url,header):
+    result = requests.get(url + '?lang=en-us',headers=header)
+    return (result)
+
+def geturl_list(countrycode):
+    list = pd.read_csv(f'Hotel_url/url_country_{countrycode}.csv')
+    return(list['code'].reset_index().values.tolist())
+
+def worker_scrape(lang,amount,amounto):
+
+    link = geturl_list(lang)
+    link = link[amount:amounto]
+    header = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36'
+            }
+    final_list =[]
+    round = 0
+    retry = 0
+    print(f'Total of {len(link)} hotels in the list.')
+    for a in link:
+        url = a[1]
+        index = a[0]
+        result =False
+        while not(result): 
+            if retry >2:
+                print(f'Retry more than 3 times. skipping link {url}')
+                retry =0 
+                result =True
+                break
+
+            if round %10==0:
+                print(round)
+                print(url)
+
+            try:
+                sub_text = {}
+                result = request_url(url,header)
+
+                if not(result.ok):
+                    raise f"Didn't get the result {result.content}."
+
+                result_hotel = BeautifulSoup(result.content, 'html.parser')
+
+
+                position_info = result_hotel.select_one("script:-soup-contains('booking.env.b_map_center_latitude')")
+                pos_list = ['booking.env.b_map_center_longitude','booking.env.b_map_center_latitude']
+                for text in position_info.text.split('\n'):
+                    item = text.find('=')-1
+                    if text[:item] in pos_list:
+                        item=text[:-1].split('=')
+                        sub_text[item[0].strip()] = item[1].strip()
+
+                hotel_info= result_hotel.select_one("script:-soup-contains('city_name')")
+                findlist =['atnm','hotel_name','city_name','region_name','country_name','dest_type','dest_ufi','hotel_id']
+                jsData = re.search(r'window.utag_data\s=\s(.*?)\}', hotel_info.text,flags=re.DOTALL).group(1)
+                for b in jsData.split('\n'):
+                    item = b.find(':')
+                    if b[:item] in findlist:
+                        item=b[:-2].split(':')
+                        sub_text[item[0].strip()] = item[1].strip().replace("'",'')
+
+
+                currency_info =result_hotel.select_one("script:-soup-contains('b_hotel_currencycode')")
+                jsData = re.search(r'b_hotel_currencycode:\s"(.*?)",', currency_info.text).group(1)
+                sub_text['hotel_currency'] = jsData
+
+                score_info = result_hotel.select_one("script:-soup-contains('PropertyReview:{}')")
+                jsData = re.search(r'{"__typename":"PropertyReview","totalScore":(.*?)"}]}', score_info.text).group(1) + '"},'
+                for d in jsData.split('{"__typename":"ReviewQuestionSegment","question":'):
+                        item_begin = d.find('customerType')+15
+                        item_end = d.find('}',item_begin)-1
+                        if d[item_begin:item_end] =="TOTAL":
+                            item_begin_type = d.find('"question":')+12
+                            item_end_type = d.find(',',item_begin_type)-1
+                            item_begin_score = d.find('"score":')+8
+                            item_end_score = d.find(',',item_begin_score)
+                            sub_text[d[item_begin_type:item_end_type]] = d[item_begin_score:item_end_score]
+
+                sub_text['url_index'] = index+1
+                round += 1
+                final_list.append(sub_text)
+                result =True
+
+            except Exception as e:
+                print('Error while processing scipt.')
+                print(e)
+                print('Sleep for 10 sec and try again.')
+                time.sleep(10)
+                retry +=1
+    pd.DataFrame(final_list).to_csv(f'Output\worker_{amount}-{amounto}.csv',index=False)
+    print('Worker Done Executing.')
+    
+if __name__ == "__main__":
+    index = templlate_1
+    indexto = templlate_2
+    worker_scrape(templlate_3,index,indexto)

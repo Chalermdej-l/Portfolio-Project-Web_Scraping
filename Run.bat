@@ -1,0 +1,1 @@
+start python worker1.py & start python worker2.py & start python worker3.py & start python worker4.py & start python worker5.py & start python worker6.py & start python worker7.py & start python worker8.py & start python worker9.py & start python worker10.py
