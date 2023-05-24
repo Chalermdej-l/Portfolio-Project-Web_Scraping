@@ -2,7 +2,7 @@
 
 ## Table of contents
 
-* [Project Detail](#project-overview)
+* [Project Overview](#project-overview)
 * [Prerequisite](#prerequisite)
 * [Project Detail](#project-detail)
 
