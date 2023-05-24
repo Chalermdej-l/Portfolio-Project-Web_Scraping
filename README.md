@@ -27,7 +27,7 @@ This project use Python and below package
 4. [Bs4](https://pypi.org/project/beautifulsoup4/)
 5. [Regex](https://pypi.org/project/regex/)
 
-You can install the above project in the [requirements.txt] file provide in this project
+You can install the above project in the [Requirement.txt](/Requirement.txt) file provide in this project
 
 ```
 pip install -r requirements.txt
