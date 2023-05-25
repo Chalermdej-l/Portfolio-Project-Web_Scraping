@@ -5,10 +5,9 @@
 * [Project Overview](#project-overview)
 * [Prerequisite](#prerequisite)
 * [Project Detail](#project-detail)
-  - [1.Get all the hotel list](#1.get-all-the-hotel-list)
-  - [2.Scape the data using the url list](#2.scape-the-data-using-the-url-list)
-  - [3.Combine all the file and insert into database](#3.combine-all-the-file-and-insert-into-database)
-  - 
+  - [1.Get all the hotel list](#1-get-all-the-hotel-list)
+  - [2.Scape the data using the url list](#2-scape-the-data-using-the-url-list)
+  - [3.Combine all the file and insert into database](#3-combine-all-the-file-and-insert-into-database)
 * [Further Improvements](#further-improvements)
 
 ## Project Overview
@@ -50,7 +49,7 @@ pip install -r requirements.txt
 
 ## Project Detail
 
-### 1.Get all the hotel list
+### 1 Get all the hotel list
 
 The goal is to get data of the hotel on [Booking.com](https://www.booking.com/). Thankfully Booking.com don't forbid cawlers [Robots.txt](https://www.booking.com/robots.txt) and they provide a list of useful information in xml format amoung them is all the hotel list this [XML page](https://www.booking.com/sitembk-hotel-index.xml).
 
@@ -60,7 +59,7 @@ Which we will use to scape the data. We will use this [script](/GetUrl.ipynb) to
 
 ![csv](/image/csvurl.png)
 
-### 2.Scape the data using the url list
+### 2 Scape the data using the url list
 
 After we get the url list of the hotel we will then scape the page using this [template](/template.txt) this code will scape the data for location name hotel id and dest id and the rview of the hotels.
 
@@ -70,7 +69,7 @@ as there are many url in the list depend on the country there are about 20,000 h
 
 ![splitfile](/image/splitfile.png)
 
-### 3.Combine all the file and insert into database
+### 3 Combine all the file and insert into database
 
 After we done with the script we will then run this [script](/Combine_load.ipynb) this script will combine all the created file into one and insert this data into the local database. We can also save this as a CSV file instead  
 
