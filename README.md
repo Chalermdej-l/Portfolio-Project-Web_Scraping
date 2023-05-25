@@ -5,6 +5,10 @@
 * [Project Overview](#project-overview)
 * [Prerequisite](#prerequisite)
 * [Project Detail](#project-detail)
+  - [1.Get all the hotel list](#1.get-all-the-hotel-list)
+  - [2.Scape the data using the url list](#2.scape-the-data-using-the-url-list)
+  - [3.Combine all the file and insert into database](#3.combine-all-the-file-and-insert-into-database)
+  - 
 * [Further Improvements](#further-improvements)
 
 ## Project Overview
@@ -47,6 +51,7 @@ pip install -r requirements.txt
 ## Project Detail
 
 ### 1.Get all the hotel list
+
 The goal is to get data of the hotel on [Booking.com](https://www.booking.com/). Thankfully Booking.com don't forbid cawlers [Robots.txt](https://www.booking.com/robots.txt) and they provide a list of useful information in xml format amoung them is all the hotel list this [XML page](https://www.booking.com/sitembk-hotel-index.xml).
 
 ![xml](/image/xmlurl.png)
@@ -56,18 +61,21 @@ Which we will use to scape the data. We will use this [script](/GetUrl.ipynb) to
 ![csv](/image/csvurl.png)
 
 ### 2.Scape the data using the url list
+
 After we get the url list of the hotel we will then scape the page using this [template](/template.txt) this code will scape the data for location name hotel id and dest id and the rview of the hotels.
-
-![splitfile](/image/splitfile.png)
-
-as there are many url in the list depend on the country there are about 20,000 hotel in TH alone so we can't run the script with 1 intance this will take too much time to solve this issue I have create this [script](/Scapebooking.ipynb) this script will open the csv file we get in step 1 and calculate the workload into different node we provide then it will create a script for each node using the [template](/template.txt) then run the created code with this [.bat](/Run.bat) file to run all the code at the same time with as the task is an [I/O bound](https://en.wikipedia.org/wiki/I/O_bound) tpye.
-
-![scape](/image/scapetask.png)
-
-### 3.Combine all the file and insert into database
-After we done with the script we will then run this [script](/Combine_load.ipynb) this script will combine all the created file into one and insert this data into the local database. We can also save this as a CSV file instead  
 
 ![hotel](/image/scapehotel.png)
 
+as there are many url in the list depend on the country there are about 20,000 hotel in TH alone so we can't run the script with 1 intance this will take too much time to solve this issue I have create this [script](/Scapebooking.ipynb) this script will open the csv file we get in step 1 and calculate the workload into different node we provide then it will create a script for each node using the [template](/template.txt) then run the created code with this [.bat](/Run.bat) file to run all the code at the same time with as the task is an [I/O bound](https://en.wikipedia.org/wiki/I/O_bound) tpye.
+
+![splitfile](/image/splitfile.png)
+
+### 3.Combine all the file and insert into database
+
+After we done with the script we will then run this [script](/Combine_load.ipynb) this script will combine all the created file into one and insert this data into the local database. We can also save this as a CSV file instead  
+
+![scape](/image/scapetask.png)
+
 ## Further Improvements
+
 Implement a [Multiprocessing](https://docs.python.org/3/library/multiprocessing.html) and [Multiprocessing](https://docs.python.org/3/library/multiprocessing.html) to reduce the workload intead of split the task into multiple file and run them. The current code need to be run manaully and not continuous as a pipeline with Multiprocessing and Multiprocessing we can setup a pipeline to wait for all the task to finish then combine all the file and insert them into a data storage.
