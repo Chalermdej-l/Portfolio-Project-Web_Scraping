@@ -5,7 +5,7 @@
 * [Project Overview](#project-overview)
 * [Prerequisite](#prerequisite)
 * [Project Detail](#project-detail)
-
+* [Further Improvements](#further-improvements)
 
 ## Project Overview
 
@@ -27,7 +27,17 @@ This project use Python and below package
 4. [Bs4](https://pypi.org/project/beautifulsoup4/)
 5. [Regex](https://pypi.org/project/regex/)
 
-You can install the above project in the [Requirement.txt](/Requirement.txt) file provide in this project
+Please clone this project 
+```
+git clone https://github.com/Chalermdej-l/Portfolio-Project-Web_Scraping
+```
+
+And navigate to the clone directory
+```
+cd Portfolio-Project-Web_Scraping
+```
+
+You can install the above package in the [Requirement.txt](/Requirement.txt) file provide in this project
 
 ```
 pip install -r requirements.txt
@@ -36,55 +46,28 @@ pip install -r requirements.txt
 
 ## Project Detail
 
-After clone the project you will find 2 excel file
+### 1.Get all the hotel list
+The goal is to get data of the hotel on [Booking.com](https://www.booking.com/). Thankfully Booking.com don't forbid cawlers [Robots.txt](https://www.booking.com/robots.txt) and they provide a list of useful information in xml format amoung them is all the hotel list this [XML page](https://www.booking.com/sitembk-hotel-index.xml).
 
-1.Project_DashBoard
+![xml](/image/xmlurl.png)
 
-You can find the Dashboard create using excel function in `Portfolio 3` tab
+Which we will use to scape the data. We will use this [script](/GetUrl.ipynb) to save all the hotel list into local directory. The script will access the xml page and download each file into one list and then sepearte them into each country in a csv file.
 
-![dashboard](/image/Excel_dashboard.png)
+![csv](/image/csvurl.png)
 
+### 2.Scape the data using the url list
+After we get the url list of the hotel we will then scape the page using this [template](/template.txt) this code will scape the data for location name hotel id and dest id and the rview of the hotels.
 
-This dashboard show the monthly summary of the suppport call center stat like avg call per minute how many call take about what subject what agent receive the most call etc..
+![splitfile](/image/splitfile.png)
 
-The data use in this dashboard can be found in `Portfolio 3_2` in this tab you can see the raw data and the calculation use for the dashboard.
+as there are many url in the list depend on the country there are about 20,000 hotel in TH alone so we can't run the script with 1 intance this will take too much time to solve this issue I have create this [script](/Scapebooking.ipynb) this script will open the csv file we get in step 1 and calculate the workload into different node we provide then it will create a script for each node using the [template](/template.txt) then run the created code with this [.bat](/Run.bat) file to run all the code at the same time with as the task is an [I/O bound](https://en.wikipedia.org/wiki/I/O_bound) tpye.
 
-2.Portfolio Project_VBA
+![scape](/image/scapetask.png)
 
-Please note you may have to [enable trust](https://support.microsoft.com/en-us/topic/a-potentially-dangerous-macro-has-been-blocked-0952faa0-37e7-4316-b61d-5b5ed6024216) to this file as microsoft diable Macro by default.
+### 3.Combine all the file and insert into database
+After we done with the script we will then run this [script](/Combine_load.ipynb) this script will combine all the created file into one and insert this data into the local database. We can also save this as a CSV file instead  
 
-2.1 First code `Portfolio1` use this [VBA code](/Script/Portfolio1_Loopandopenfile.bas) this code is desing to load the Excel and Text file data into this file
+![hotel](/image/scapehotel.png)
 
-Please select `Import File` there will be a popup window to choose the file once choose the content will be insert into this sheet
-
-![VBAtab1.png](/image/VBAtab1.png)
-
-You can select `Clear Data` to remove all data in this page to load a new file
-
-2.2 Second code `Portfolio 2` use this [VBA code](/Script/Portfolio2_LoopCellAndSavePDFdf.bas) this code is desing to export the data into WHT pdf format in  `Portfolio 2_2` tab
-
-![wht](/image/Whtformat.png)
-
-Please select `Save as pdf` button there will be a window to choose which Ref no. to start generated the data from.
-
-![VBAtab2.png](/image/VBAtab2.png)
-
-Once hit run the code will run depend on how many data there ar the code might take a minute or two to run 
-
-After done there will be a folder create in the Desktop name `Print` folder this will store all the output pdf file generated
-
-The code will also open this folder to check the output for any issue.
-
-2.3 Thrid code `Portfolio 3` is desing to export the data into a text file for wht tax filing via the [RD Prep](https://efiling.rd.go.th/rd-cms/) program.
-
-This sofeware can be use to file the Wht tax but you would need to prepare the data into the correct text format.
-
-![VBAtab3.png](/image/VBAtab3.png)
-
-This code will use the data in `Portfolio 3_2` and seperate them into different address type like province, City, Post code along with necessary data for the tax filing like tax rate tax amount.
-
-You can chnage the number in `A2` cell to change between WHT3 and WHT53 form you can insert 3 or 53 in this cell and the fomula will change accordingly
-
-Please select `Export03` button this will create a `WHTaxGenerate` folder in the Desktop with the text file generated.
-
-The code will also open this folder to check the output file for any error.
+## Further Improvements
+Implement a [Multiprocessing](https://docs.python.org/3/library/multiprocessing.html) and [Multiprocessing](https://docs.python.org/3/library/multiprocessing.html) to reduce the workload intead of split the task into multiple file and run them. The current code need to be run manaully and not continuous as a pipeline with Multiprocessing and Multiprocessing we can setup a pipeline to wait for all the task to finish then combine all the file and insert them into a data storage.
