@@ -23,7 +23,7 @@ There are many hotel just TH hotel alone have around 20,000 hotels. So to reduce
 Then use this [.bat] (/Run.bat) file to run the code at the same time this will create multikple instance of python to run this script. Once the script done running the file will be paste in this folder
  [Output](/Output) then we will use this [Combine_load](/Combine_load.ipynb) to combine all the file into one and insert into a local SQL database. 
  
- In the future I want to implement [Multiprocessing](https://docs.python.org/3/library/multiprocessing.html) and [Multiprocessing](https://docs.python.org/3/library/multiprocessing.html) to reduce the run time for the script.
+ In the future I want to implement [Multiprocessing](https://docs.python.org/3/library/multiprocessing.html) and [Multithreading](https://docs.python.org/3/library/threading.html) to reduce the run time for the script.
  
 
 ## Prerequisite
@@ -82,4 +82,4 @@ After we done with the script we will then run this [script](/Combine_load.ipynb
 
 ## Further Improvements
 
-Implement a [Multiprocessing](https://docs.python.org/3/library/multiprocessing.html) and [Multiprocessing](https://docs.python.org/3/library/multiprocessing.html) to reduce the workload intead of split the task into multiple file and run them. The current code need to be run manaully and not continuous as a pipeline with Multiprocessing and Multiprocessing we can setup a pipeline to wait for all the task to finish then combine all the file and insert them into a data storage.
+Implement a [Multiprocessing](https://docs.python.org/3/library/multiprocessing.html) and [Multithreading](https://docs.python.org/3/library/threading.html) to reduce the workload intead of split the task into multiple file and run them. The current code need to be run manaully and not continuous as a pipeline with Multiprocessing and Multithreading we can setup a pipeline to wait for all the task to finish then combine all the file and insert them into a data storage.
