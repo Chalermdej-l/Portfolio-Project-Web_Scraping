@@ -91,11 +91,15 @@ Notebooks in `notebooks/` do the same things with more interactive output.
 - An honest `User-Agent` identifying the project, not a browser impersonation.
 - Data is used for personal learning / portfolio analysis only.
 
-## Tests
+## Development
 
 ```bash
 pip install -r requirements-dev.txt
+pre-commit install
+
 pytest
 ruff check .
 ruff format --check .
 ```
+
+The tests run against recorded HTML fixtures in `tests/fixtures/`, so no network access and no SQL Server instance are required. CI ([.github/workflows/ci.yml](/.github/workflows/ci.yml)) runs ruff and pytest on every push and pull request.
