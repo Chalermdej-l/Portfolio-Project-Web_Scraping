@@ -1,3 +1,19 @@
-Output/TH/*.csv
-Hotel_url/*.csv
-*.gz
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Environment
+.env
+
+# Pipeline outputs
+Output/*
+!Output/.gitkeep
+Hotel_url/*
+!Hotel_url/.gitkeep
+*.xml.gz
+
+# Notebooks
+.ipynb_checkpoints/

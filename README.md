@@ -1,85 +1,101 @@
-# Portfolio-Profect-Web_Scraping
+# Booking.com Hotel Scraper
 
-## Table of contents
+A personal data-engineering project: collect public hotel listing data from Booking.com
+(coordinates, identifiers, currency, review scores) and load it into SQL Server for
+exploratory analysis.
 
-* [Project Overview](#project-overview)
-* [Prerequisite](#prerequisite)
-* [Project Detail](#project-detail)
-  - [1.Get all the hotel list](#1-get-all-the-hotel-list)
-  - [2.Scrape the data using the url list](#2-scrape-the-data-using-the-url-list)
-  - [3.Combine all the file and insert into database](#3-combine-all-the-file-and-insert-into-database)
-* [Further Improvements](#further-improvements)
+The pipeline is three steps:
 
-## Project Overview
+1. **Get URLs** — download the public sitemap index, expand the `en-us` child sitemaps,
+   and write one CSV per country code into `Hotel_url/`.
+2. **Scrape** — split a country's URL list into shards and run one worker process per
+   shard. Each worker parses the hotel pages and writes `Output/worker_<start>-<end>.csv`.
+3. **Combine & load** — concatenate the worker CSVs, de-duplicate, align columns to the
+   `Hotel_Info` schema, and bulk-insert into SQL Server.
 
-This project is aim to create a web-scraping python script. To scrape [Booking.com](https://www.booking.com/) to get the information for the hotel like review score, loaation, Id etc. 
-
-Checking the [Robots.txt](https://www.booking.com/robots.txt) for [Booking.com](https://www.booking.com/) there is no disallow of scaping the hotel page data there is also a [XML page](https://www.booking.com/sitembk-hotel-index.xml) with all the hotel in different language for the clawer to use.
-
-We will use this script [GetUrl](/GetUrl.ipynb) to get the hotel list in the [XML page](https://www.booking.com/sitembk-hotel-index.xml) and pass this to this (template)[/template.txt] to scpate the data. 
-
-There are many hotel just TH hotel alone have around 20,000 hotels. So to reduce the script run time I have try to split the workload into multiple run by using this [Scrapebooking](/Scapebooking.ipynb) to populate the (template)[/template.txt] into multiple file base on the node varible provide.
-
-Then use this [.bat] (/Run.bat) file to run the code at the same time this will create multikple instance of python to run this script. Once the script done running the file will be paste in this folder
- [Output](/Output) then we will use this [Combine_load](/Combine_load.ipynb) to combine all the file into one and insert into a local SQL database. 
- 
- In the future I want to implement [Multiprocessing](https://docs.python.org/3/library/multiprocessing.html) and [Multithreading](https://docs.python.org/3/library/threading.html) to reduce the run time for the script.
- 
-
-## Prerequisite
-
-This project use Python and below package
-1. [Pandas](https://pandas.pydata.org/)
-2. [Pyodbc](https://pypi.org/project/pyodbc/)
-3. [Requests](https://pypi.org/project/requests/)
-4. [Bs4](https://pypi.org/project/beautifulsoup4/)
-5. [Regex](https://pypi.org/project/regex/)
-
-Please clone this project 
-```
-git clone https://github.com/Chalermdej-l/Portfolio-Project-Web_Scraping
-```
-
-And navigate to the clone directory
-```
-cd Portfolio-Project-Web_Scraping
-```
-
-You can install the above package in the [Requirement.txt](/Requirement.txt) file provide in this project
+## Project structure
 
 ```
-pip install -r Requirements.txt
+src/
+  config.py    # column layout + SQL insert contract (DB settings from env vars)
+  sitemap.py   # step 1: sitemap index -> per-country URL CSVs
+  scraper.py   # step 2: page fetching + parsing
+  runner.py    # step 2b: shard math + worker process launching
+  loader.py    # step 3: combine worker CSVs + SQL Server bulk load
+  cli.py       # command-line entry point
+notebooks/
+  get_url.ipynb      # thin wrapper around src.sitemap
+  scrape_booking.ipynb  # thin wrapper around src.runner / src.scraper
+  combine_load.ipynb    # thin wrapper around src.loader
+tests/             # unit tests + a captured-page fixture
+image/             # screenshots referenced below
 ```
 
+## Setup
 
-## Project Detail
+Python 3.11+.
 
-### 1 Get all the hotel list
+```bash
+python -m venv .venv
+.venv\Scripts\activate        # Windows
+pip install -r requirements.txt
+```
 
-The goal is to get data of the hotel on [Booking.com](https://www.booking.com/). Thankfully Booking.com don't forbid cawlers [Robots.txt](https://www.booking.com/robots.txt) and they provide a list of useful information in xml format amoung them is all the hotel list this [XML page](https://www.booking.com/sitembk-hotel-index.xml).
+Create a `.env` from the example (used by the load step):
 
-![xml](/image/xmlurl.png)
+```bash
+copy .env.example .env
+```
 
-Which we will use to scrape the data. We will use this [script](/GetUrl.ipynb) to save all the hotel list into local directory. The script will access the xml page and download each file into one list and then sepearte them into each country in a csv file.
+The load step needs a SQL Server with the `scape_booking` database and the
+`Hotel_Info` table. The connection values come from environment variables
+(`DB_DRIVER`, `DB_SERVER`, `DB_DATABASE`); defaults match a local SQL Express install.
 
-![csv](/image/csvurl.png)
+## Usage
 
-### 2 Scrape the data using the url list
+```bash
+# Step 1: download sitemaps, write Hotel_url/url_country_<cc>.csv
+python -m src.cli geturl
 
-After we get the url list of the hotel we will then scrape the page using this [template](/template.txt) this code will scrape the data for location name hotel id and dest id and the rview of the hotels.
+# Step 2: scrape one country with 10 parallel workers
+python -m src.cli scrape --country th --workers 10
 
-![hotel](/image/scapehotel.png)
+# ...or scrape a single shard (this is what each worker process runs)
+python -m src.cli scrape --country th --start 0 --end 1973
 
-as there are many url in the list depend on the country there are about 20,000 hotel in TH alone so we can't run the script with 1 intance this will take too much time to solve this issue I have create this [script](/Scapebooking.ipynb) this script will open the csv file we get in step 1 and calculate the workload into different node we provide then it will create a script for each node using the [template](/template.txt) then run the created code with this [.bat](/Run.bat) file to run all the code at the same time with as the task is an [I/O bound](https://en.wikipedia.org/wiki/I/O_bound) tpye.
+# Step 3: combine Output/*.csv and insert into SQL Server
+python -m src.cli combine
+```
 
-![splitfile](/image/splitfile.png)
+Notebooks in `notebooks/` do the same things with more interactive output.
 
-### 3 Combine all the file and insert into database
+## Design notes
 
-After we done with the script we will then run this [script](/Combine_load.ipynb) this script will combine all the created file into one and insert this data into the local database. We can also save this as a CSV file instead  
+- **Sharding math** — `runner.compute_ranges(total, nodes)` splits `[0, total)` into
+  `nodes` contiguous slices of `round(total / nodes)`; the last slice absorbs the
+  remainder. `tests/test_runner.py` pins the exact behaviour, including edge cases.
+- **Resilience** — requests use a timeout, HTTP-level retry with backoff for 429/5xx,
+  a short delay between page requests, and a bounded parse-retry loop per page.
+- **Missing values** — a score that is absent on a page stays NULL through to the
+  database; only `inuse` defaults to 0.
+- **Parser** — the page parsing in `src/scraper.py` targets the exact markup that the
+  pages ship in (inline `<script>` JSON blobs). `tests/fixtures/hotel.html` is a
+  hand-captured representative page, and `tests/test_scraper.py` pins the parser's
+  behaviour against it. If Booking.com changes their markup the tests fail first,
+  which tells you the parser needs updating.
 
-![scrape](/image/scapetask.png)
+## Scraping ethics
 
-## Further Improvements
+- Public listing pages only, via the site's own public sitemap.
+- Rate-limited (delay between requests) and retried politely on transient errors.
+- An honest `User-Agent` identifying the project, not a browser impersonation.
+- Data is used for personal learning / portfolio analysis only.
 
-Implement a [Multiprocessing](https://docs.python.org/3/library/multiprocessing.html) and [Multithreading](https://docs.python.org/3/library/threading.html) to reduce the workload intead of split the task into multiple file and run them. The current code need to be run manaully and not continuous as a pipeline with Multiprocessing and Multithreading we can setup a pipeline to wait for all the task to finish then combine all the file and insert them into a data storage.
+## Tests
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+ruff check .
+ruff format --check .
+```

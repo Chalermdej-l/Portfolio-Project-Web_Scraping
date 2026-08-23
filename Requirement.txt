@@ -1,5 +1,0 @@
-pandas
-pyodbc
-requests
-bs4
-regex
